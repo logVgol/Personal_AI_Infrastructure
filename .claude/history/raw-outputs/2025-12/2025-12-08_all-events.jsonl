@@ -1,0 +1,2 @@
+﻿{"timestamp":1765250630393,"hook_event_type":"System","payload":{"message":"{message: Pipeline"},"source_app":"established","session_id":"gemini-session-cli","timestamp_pst":"2025-12-08 19:23:50 PST"}
+{"timestamp":1765264558337,"hook_event_type":"System Instruction","payload":{"message":"{message: Gemini"},"source_app":"Gemini","session_id":"gemini-session-cli","timestamp_pst":"2025-12-08 23:15:58 PST"}

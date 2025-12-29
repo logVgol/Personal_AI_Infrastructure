@@ -1,0 +1,118 @@
+{
+  "name": "personal-ai-infrastructure",
+  "version": "0.9.1",
+  "description": "Personal AI Infrastructure (PAI) - Your AI system core. Adapted for Gemini CLI.",
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Glob",
+      "Grep",
+      "WebFetch(domain:*)",
+      "WebSearch",
+      "NotebookRead",
+      "NotebookEdit",
+      "TodoWrite",
+      "ExitPlanMode",
+      "Task",
+      "mcp__*"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf $HOME)",
+      "Bash(sudo rm -rf /)"
+    ]
+  },
+  "mcpServers": {
+    "httpx": {
+      "type": "http",
+      "description": "Use for getting information on web servers or site stack information.",
+      "url": "https://httpx-mcp.danielmiessler.workers.dev",
+      "headers": {
+        "x-api-key": "${HTTPX_API_KEY}"
+      }
+    },
+    "content": {
+      "type": "http",
+      "description": "Archive of Daniel Miessler's content.",
+      "url": "https://content-mcp.danielmiessler.workers.dev"
+    },
+    "daemon": {
+      "type": "http",
+      "description": "Daniel Miessler's personal API.",
+      "url": "https://mcp.daemon.danielmiessler.com"
+    },
+    "Foundry": {
+      "type": "http",
+      "description": "My personal AI infrastructure (PAI) tools.",
+      "url": "https://api.danielmiessler.com/mcp/",
+      "headers": {
+        "Authorization": "${FOUNDRY_API_KEY}"
+      }
+    },
+    "naabu": {
+      "type": "http",
+      "description": "Port scanner.",
+      "url": "https://naabu-mcp.danielmiessler.workers.dev",
+      "headers": {
+        "x-api-key": "${NAABU_API_KEY}"
+      }
+    },
+    "brightdata": {
+      "command": "bunx",
+      "args": [
+        "-y",
+        "@brightdata/mcp"
+      ],
+      "env": {
+        "API_TOKEN": "${BRIGHTDATA_API_KEY}"
+      }
+    },
+    "stripe": {
+      "command": "bunx",
+      "args": [
+        "-y",
+        "@stripe/mcp",
+        "--tools=all"
+      ],
+      "description": "Stripe payment processing"
+    },
+    "Ref": {
+      "command": "bunx",
+      "args": [
+        "@refdotai/mcp"
+      ],
+      "description": "Documentation search"
+    },
+    "apify": {
+      "command": "bunx",
+      "args": [
+        "@apify/actors-mcp-server"
+      ],
+      "env": {
+        "APIFY_TOKEN": "${APIFY_TOKEN}"
+      },
+      "description": "Web scraping via Apify"
+    },
+    "playwright": {
+      "command": "bunx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--extension"
+      ],
+      "description": "Browser automation using Playwright"
+    },
+    "log_event": {
+      "command": "bun",
+      "args": [
+        "${extensionPath}/.claude/tools/log_event.ts"
+      ],
+      "description": "Manually log events to the PAI Dashboard. Use this to record significant actions, tool uses, or completions."
+    }
+  }
+}
