@@ -110,7 +110,7 @@ Good pack candidates:
 
 ### Step 2: Follow the Template
 
-Use the pack template: see `PAIPackTemplate.md` in the Kai system or the example packs in [Packs/](Packs/).
+Use the pack template: see [Tools/PAIPackTemplate.md](Tools/PAIPackTemplate.md) or the example packs in [Packs/](Packs/).
 
 **Required elements:**
 1. YAML frontmatter with metadata
@@ -221,11 +221,27 @@ keywords: [searchable, tags]
 
 Browse all packs: [Packs/](Packs/)
 
+### Foundation Packs
+
 | Pack | Type | Description |
 |------|------|-------------|
-| [Kai History System](Packs/kai-history-system.md) | Feature | Automatic context-tracking for entire AI infrastructure |
+| [kai-hook-system](Packs/kai-hook-system.md) | Foundation | Event-driven automation framework for hook-based capabilities |
+| [kai-history-system](Packs/kai-history-system.md) | Infrastructure | Automatic context-tracking for all work, decisions, and learnings |
+| [kai-core-install](Packs/kai-core-install.md) | Core | Skills + Identity + Architecture - complete foundation pack |
+| [kai-voice-system](Packs/kai-voice-system.md) | Notifications | Voice output with ElevenLabs TTS and prosody enhancement |
+| [kai-observability-server](Packs/kai-observability-server.md) | Observability | Real-time multi-agent monitoring dashboard |
 
-*More packs coming soon*
+### Skill Packs
+
+| Pack | Type | Description |
+|------|------|-------------|
+| [kai-art-skill](Packs/kai-art-skill.md) | Skill | Visual content generation with charcoal architectural sketch aesthetic |
+| [kai-agents-skill](Packs/kai-agents-skill.md) | Skill | Dynamic agent composition with specialized personalities and voices |
+| [kai-prompting-skill](Packs/kai-prompting-skill.md) | Skill | Meta-prompting system for programmatic prompt generation |
+
+**Installation order:** hooks → history → core-install → voice → observability (optional) → skill packs
+
+**Or install the complete [Kai Bundle](Bundles/Kai/)** which handles ordering automatically.
 
 ---
 

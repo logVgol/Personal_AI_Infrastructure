@@ -8,6 +8,58 @@ Each pack is a single flat markdown file with YAML frontmatter and structured se
 
 ---
 
+## 🔴 END-TO-END REQUIREMENT (MANDATORY)
+
+**Every pack MUST be end-to-end complete.** This is the most important requirement.
+
+### What End-to-End Means
+
+If your pack has a data flow, EVERY component in that flow must be included:
+
+```
+Hook → sends to → Server → calls → API → plays → Audio
+  ✅        ✅        ✅       ✅      ✅       ✅
+  ALL of these must be in the pack
+```
+
+### Anti-Patterns (NEVER DO THESE)
+
+| ❌ WRONG | ✅ RIGHT |
+|----------|----------|
+| "A full server implementation is beyond this pack's scope" | Include the complete server implementation |
+| "You can implement your own TTS provider" | Include the TTS integration code |
+| "See the skeleton pattern below" | Include production-ready code |
+| "Adapt to your preferred system" | Include the complete working system |
+| "The voice server is a required dependency" | Include the voice server |
+
+### The Chain Test
+
+Before publishing, trace every data flow:
+
+1. **Identify the chain**: What calls what? (Hook → Server → API → Output)
+2. **Check each link**: Is the code for this component in the pack?
+3. **Find the gaps**: Any "implement your own" or "beyond scope"?
+4. **Fill the gaps**: Add the missing components
+
+**If ANY link says "you implement this" or "beyond scope" - the pack is INCOMPLETE.**
+
+### Example: Voice System
+
+A voice system pack MUST include:
+
+| Component | What It Does | Included? |
+|-----------|--------------|-----------|
+| Stop hook | Extracts completion message | ✅ Required |
+| Prosody enhancer | Adds emotional markers | ✅ Required |
+| Voice server | HTTP server on port 8888 | ✅ Required |
+| ElevenLabs integration | Calls TTS API | ✅ Required |
+| Audio playback | Plays the audio | ✅ Required |
+| Server management | Start/stop/restart script | ✅ Required |
+
+**NOT:** "The voice server is beyond scope." That makes the pack useless.
+
+---
+
 ## Frontmatter (Metadata)
 
 ```yaml
@@ -52,10 +104,28 @@ Every pack MUST have a 256x256 transparent PNG icon immediately after the frontm
 
 **Icon specs:**
 - 256x256 pixels
-- Transparent background
+- **ACTUAL transparent background** (not baked-in checkerboard)
 - Blue (#4a90d9) primary color
 - Purple (#8b5cf6) accent only (10-15%)
 - Simple, recognizable at 64x64
+
+**CRITICAL - Icon Generation:**
+
+When generating icons, you MUST use the `--remove-bg` flag to ensure actual transparency:
+
+```bash
+bun run ~/.claude/skills/Art/Tools/Generate.ts \
+  --model nano-banana-pro \
+  --prompt "[ICON_DESCRIPTION], simple flat icon design, 256x256 pixels. COLOR PALETTE: Background solid dark (#0a0a0f), Primary electric blue (#4a90d9), Accent purple (#8b5cf6). Simple enough to read at 64x64." \
+  --size 1K \
+  --aspect-ratio 1:1 \
+  --remove-bg \
+  --output ~/Downloads/pack-icon.png
+```
+
+**The `--remove-bg` flag is MANDATORY.** Without it, the image will have a baked-in checkerboard pattern instead of actual transparency.
+
+After generation, verify transparency by viewing in a browser - the browser's background should show through, not a checkerboard pattern.
 
 **Format in pack file:**
 ```markdown
@@ -123,6 +193,45 @@ This pack adds automatic memory to your entire AI infrastructure. The Kai Histor
 No more forgotten context between sessions. No more lost learnings. Your AI remembers everything so you don't have to.
 
 Please follow the installation instructions below to integrate this pack into your infrastructure.
+
+---
+
+## What's Included
+<!--
+(256 words max)
+
+INSTRUCTIONS FOR AI: Provide a quick manifest of what this pack creates.
+This gives users an at-a-glance summary of the pack's contents BEFORE
+they commit to installation.
+
+Include:
+- A table with Component | File | Purpose columns
+- Summary counts: Files created, Hooks registered, Dependencies
+- This section is REQUIRED for all packs
+
+Example:
+| Component | File | Purpose |
+|-----------|------|---------|
+| Session initializer | `hooks/initialize-session.ts` | Sets up session context |
+| Security validator | `hooks/security-validator.ts` | Blocks dangerous commands |
+| Observability lib | `hooks/lib/observability.ts` | Event logging to dashboard |
+
+**Summary:**
+- **Files created:** 3
+- **Hooks registered:** 2
+- **Dependencies:** kai-hook-system (required)
+-->
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| [Component 1] | `path/to/file1.ts` | [What it does] |
+| [Component 2] | `path/to/file2.ts` | [What it does] |
+| [Library 1] | `hooks/lib/library.ts` | [Shared functionality] |
+
+**Summary:**
+- **Files created:** [N]
+- **Hooks registered:** [N]
+- **Dependencies:** [List or "None"]
 
 ---
 
@@ -194,12 +303,60 @@ Don't include code here - that goes in Installation. Focus on helping the reader
 understand the approach conceptually before diving into implementation.
 -->
 
+## What Makes This Different
+<!--
+(4096 words max)
+
+🚨 THIS SECTION IS CRITICAL - IT'S WHAT MAKES PACKS VALUABLE 🚨
+
+INSTRUCTIONS FOR AI: This is where you explain WHY this pack is architecturally
+interesting and BETTER than a baseline AI installation. This is what makes it different
+that justifies the pack's existence.
+
+Every pack MUST explain its architectural innovation:
+- What layers/components exist and how they interact
+- How data/intent flows through the system
+- Why this architecture is superior to naive approaches
+- What makes it deterministic, composable, or debuggable
+
+USE VISUAL DIAGRAMS - ASCII art showing the flow is extremely valuable.
+
+EXAMPLE (from kai-skill-system):
+The skill system has 5 explicit routing layers:
+1. SKILL.md frontmatter → loaded into system prompt for routing
+2. SKILL.md body → workflow routing table, loads on invocation
+3. Context files → topic-specific docs, load on-demand
+4. Workflows/ → HOW to do things (prompts/procedures)
+5. Tools/ → CLI programs called by workflows
+
+Each layer has a purpose. Intent flows explicitly through them. This is
+FUNDAMENTALLY DIFFERENT from "just adding custom instructions" because:
+- Progressive loading (not everything upfront)
+- Explicit routing (not fuzzy matching)
+- Separation of concerns (metadata, docs, procedures, code)
+- Deterministic execution (workflows map intent to CLI flags)
+
+WITHOUT this section, readers won't understand why your pack is better than
+just writing a prompt. WITH this section, they see the architectural insight
+that makes the pack genuinely valuable.
+
+Include:
+- Visual diagram (ASCII) showing components and flow
+- Explanation of each layer/component
+- How intent/data flows through the system
+- Why this architecture matters (explicit benefits)
+- What problems this architecture prevents
+
+This is NOT optional. If your pack doesn't have interesting architecture,
+it might not be worth being a pack.
+-->
+
 The Kai History System solves this through **automatic, hook-based documentation**. Instead of requiring manual effort, it captures work as a byproduct of doing the work.
 
 **Core Architecture:**
 
 ```
-~/.config/pai/
+$PAI_DIR/
 ├── hooks/                           # Hook implementations
 │   ├── capture-all-events.ts        # Universal event capture (all hooks)
 │   ├── stop-hook.ts                 # Main agent completion capture
@@ -260,6 +417,38 @@ The Kai History System solves this through **automatic, hook-based documentation
 
 Documentation is a byproduct, not a task. By instrumenting the work itself, you get perfect records without any effort. The history system sees everything because it's wired into the event stream.
 
+## Why This Is Different
+<!--
+(128 words max)
+
+INSTRUCTIONS FOR AI: Explain what makes this pack unique compared to similar solutions.
+Format EXACTLY as follows:
+1. Opening line: "This sounds similar to [ALTERNATIVE] which also does [CAPABILITY]. What makes this approach different?"
+2. A 64-word paragraph explaining the key differentiator
+3. Four bullets of exactly 8 words each
+
+Example:
+"This sounds similar to mem0 which also does AI memory. What makes this approach different?
+
+[64-word paragraph explaining the unique value proposition]
+
+- First eight-word bullet explaining a key difference
+- Second eight-word bullet explaining another key difference
+- Third eight-word bullet explaining another key difference
+- Fourth eight-word bullet explaining another key difference"
+-->
+
+This sounds similar to [ALTERNATIVE] which also does [CAPABILITY]. What makes this approach different?
+
+[64-word paragraph answering the question - what makes your approach fundamentally different from existing solutions? Focus on the architectural insight, the unique methodology, or the problem framing that sets this apart.]
+
+- [First eight-word bullet explaining a key difference]
+- [Second eight-word bullet explaining another key difference]
+- [Third eight-word bullet explaining another key difference]
+- [Fourth eight-word bullet explaining another key difference]
+
+---
+
 ## Installation
 <!--
 (16384 words max)
@@ -267,6 +456,12 @@ Documentation is a byproduct, not a task. By instrumenting the work itself, you 
 INSTRUCTIONS FOR AI: Provide step-by-step installation instructions.
 Include:
 - Prerequisites (dependencies, API keys, system requirements)
+- PRE-INSTALLATION SYSTEM ANALYSIS (REQUIRED):
+  - Scripts to detect existing PAI installation
+  - Scripts to check for conflicting files/hooks
+  - Scripts to verify dependencies are installed
+  - Conflict Resolution Matrix table
+  - Backup instructions for existing files
 - Numbered steps with clear actions
 - All code needed (use fenced code blocks with language tags)
 - Code languages: typescript (bun), bash, python (uv), json, html
@@ -276,25 +471,135 @@ Include:
 Write for an AI assistant that will execute these steps. Be explicit about file
 paths, commands to run, and expected outputs. Include ALL code - no snippets,
 no "add more patterns here", no placeholders.
+
+The Pre-Installation section is CRITICAL - it ensures the AI understands the
+current system state before making changes. This prevents conflicts and allows
+for proper merge/replace/skip decisions.
 -->
 
 ### Prerequisites
 
 - **Bun runtime**: `curl -fsSL https://bun.sh/install | bash`
 - **Claude Code** (or compatible agent system with hook support)
-- **Write access** to `~/.config/pai/` (or your PAI directory)
+- **Write access** to `$PAI_DIR/` (or your PAI directory)
+
+---
+
+### Pre-Installation: System Analysis
+
+**IMPORTANT:** Before installing, analyze the current system state to detect conflicts and ensure dependencies are met.
+
+#### Step 0.1: Detect Current Configuration
+
+Run these commands to understand your current system:
+
+```bash
+# 1. Check if PAI_DIR is set
+echo "PAI_DIR: ${PAI_DIR:-'NOT SET - will use ~/.config/pai'}"
+
+# 2. Check for existing PAI directory
+PAI_CHECK="${PAI_DIR:-$HOME/.config/pai}"
+if [ -d "$PAI_CHECK" ]; then
+  echo "⚠️  PAI directory EXISTS at: $PAI_CHECK"
+  echo "Contents:"
+  ls -la "$PAI_CHECK" 2>/dev/null || echo "  (empty or inaccessible)"
+else
+  echo "✓ PAI directory does not exist (clean install)"
+fi
+
+# 3. Check for existing files that this pack will create
+# TODO: Add pack-specific file checks here
+echo ""
+echo "Checking for files this pack will create..."
+# if [ -f "$PAI_CHECK/path/to/file" ]; then
+#   echo "⚠️  file.ts already exists"
+# fi
+
+# 4. Check Claude settings for existing hooks
+CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+if [ -f "$CLAUDE_SETTINGS" ]; then
+  echo "Claude settings.json EXISTS"
+  if grep -q '"hooks"' "$CLAUDE_SETTINGS" 2>/dev/null; then
+    echo "⚠️  Existing hooks configuration found"
+  else
+    echo "✓ No hooks configured in settings.json"
+  fi
+else
+  echo "✓ No Claude settings.json (will be created)"
+fi
+
+# 5. Check environment variables
+echo ""
+echo "Environment variables:"
+echo "  DA: ${DA:-'NOT SET'}"
+echo "  TIME_ZONE: ${TIME_ZONE:-'NOT SET'}"
+echo "  PAI_DIR: ${PAI_DIR:-'NOT SET'}"
+```
+
+#### Step 0.2: Verify Dependencies
+
+```bash
+PAI_CHECK="${PAI_DIR:-$HOME/.config/pai}"
+
+# Check for required packs (customize for your pack)
+# Example: Check if hook system is installed
+if [ -f "$PAI_CHECK/hooks/lib/observability.ts" ]; then
+  echo "✓ kai-hook-system is installed"
+else
+  echo "⚠️  kai-hook-system not installed (may be required)"
+fi
+
+# Add checks for other dependencies your pack needs
+```
+
+#### Step 0.3: Conflict Resolution Matrix
+
+Based on the detection above, follow the appropriate path:
+
+| Scenario | Existing State | Action |
+|----------|---------------|--------|
+| **Clean Install** | No PAI_DIR, no conflicts | Proceed normally with Step 1 |
+| **Directory Exists** | PAI_DIR has files | Review files, backup if needed, then proceed |
+| **Files Exist** | Pack files already present | Backup old files, compare versions, then replace |
+| **Hooks Exist** | Claude settings has hooks | **MERGE** - add new hooks to existing array |
+| **Missing Dependencies** | Required packs missing | Install dependencies first |
+
+#### Step 0.4: Backup Existing Configuration (If Needed)
+
+If conflicts were detected, create a backup before proceeding:
+
+```bash
+# Create timestamped backup
+BACKUP_DIR="$HOME/.pai-backup/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$BACKUP_DIR"
+PAI_CHECK="${PAI_DIR:-$HOME/.config/pai}"
+
+# Backup files this pack will modify
+# TODO: Add pack-specific backup commands
+# Example:
+# if [ -d "$PAI_CHECK/history" ]; then
+#   cp -r "$PAI_CHECK/history" "$BACKUP_DIR/history"
+#   echo "✓ Backed up history directory"
+# fi
+
+echo "Backup location: $BACKUP_DIR"
+```
+
+**After completing system analysis, proceed to Step 1.**
+
+---
 
 ### Step 1: Create Directory Structure
 
 ```bash
 # Create all required directories
-mkdir -p ~/.config/pai/hooks/lib
-mkdir -p ~/.config/pai/history/{sessions,learnings,research,decisions,raw-outputs}
-mkdir -p ~/.config/pai/history/execution/{features,bugs,refactors}
+mkdir -p $PAI_DIR/hooks/lib
+mkdir -p $PAI_DIR/history/{sessions,learnings,research,decisions,raw-outputs}
+mkdir -p $PAI_DIR/history/execution/{features,bugs,refactors}
 
 # Verify structure
-ls -la ~/.config/pai/
-ls -la ~/.config/pai/history/
+ls -la $PAI_DIR/
+ls -la $PAI_DIR/history/
 ```
 
 Expected output: All directories created with no errors.
@@ -308,7 +613,7 @@ These shared libraries are used by multiple hooks.
 #### 2.1: Create observability.ts
 
 ```typescript
-// ~/.config/pai/hooks/lib/observability.ts
+// $PAI_DIR/hooks/lib/observability.ts
 // Dashboard integration for real-time monitoring
 
 export interface ObservabilityEvent {
@@ -357,7 +662,7 @@ export function getSourceApp(): string {
 #### 2.2: Create metadata-extraction.ts
 
 ```typescript
-// ~/.config/pai/hooks/lib/metadata-extraction.ts
+// $PAI_DIR/hooks/lib/metadata-extraction.ts
 // Extract agent instance metadata from Task tool calls
 
 export interface AgentInstanceMetadata {
@@ -459,7 +764,7 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type PreToolUse"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type PreToolUse"
           }
         ]
       }
@@ -470,7 +775,7 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type PostToolUse"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type PostToolUse"
           }
         ]
       }
@@ -480,11 +785,11 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/stop-hook.ts"
+            "command": "bun run $PAI_DIR/hooks/stop-hook.ts"
           },
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type Stop"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type Stop"
           }
         ]
       }
@@ -494,11 +799,11 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/subagent-stop-hook.ts"
+            "command": "bun run $PAI_DIR/hooks/subagent-stop-hook.ts"
           },
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type SubagentStop"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type SubagentStop"
           }
         ]
       }
@@ -508,11 +813,11 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-session-summary.ts"
+            "command": "bun run $PAI_DIR/hooks/capture-session-summary.ts"
           },
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type SessionEnd"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type SessionEnd"
           }
         ]
       }
@@ -522,7 +827,7 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type SessionStart"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type SessionStart"
           }
         ]
       }
@@ -532,7 +837,7 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
         "hooks": [
           {
             "type": "command",
-            "command": "bun run ~/.config/pai/hooks/capture-all-events.ts --event-type UserPromptSubmit"
+            "command": "bun run $PAI_DIR/hooks/capture-all-events.ts --event-type UserPromptSubmit"
           }
         ]
       }
@@ -549,19 +854,19 @@ Claude Code looks for settings in `~/.claude/settings.json`. Add or merge the fo
 
 ```bash
 # 1. Check all hooks exist
-ls -la ~/.config/pai/hooks/*.ts
+ls -la $PAI_DIR/hooks/*.ts
 # Should show 4 hook files
 
 # 2. Check lib files exist
-ls -la ~/.config/pai/hooks/lib/*.ts
+ls -la $PAI_DIR/hooks/lib/*.ts
 # Should show 2 lib files
 
 # 3. Check directory structure
-ls -la ~/.config/pai/history/
+ls -la $PAI_DIR/history/
 # Should show: sessions, learnings, research, decisions, execution, raw-outputs
 
 # 4. Verify Bun can run the hooks
-bun run ~/.config/pai/hooks/capture-all-events.ts --event-type Test <<< '{"test": true}'
+bun run $PAI_DIR/hooks/capture-all-events.ts --event-type Test <<< '{"test": true}'
 # Should create an entry in raw-outputs
 
 # 5. Restart Claude Code to activate hooks
@@ -609,7 +914,7 @@ Include:
 
 ```bash
 # User: "Have we worked on authentication before?"
-grep -r "authentication" ~/.config/pai/history/
+grep -r "authentication" $PAI_DIR/history/
 
 # Results show files with dates and categories
 ```
@@ -617,7 +922,7 @@ grep -r "authentication" ~/.config/pai/history/
 ### Example 2: Reviewing Session Activity
 
 ```bash
-ls -lt ~/.config/pai/history/sessions/2025-12/ | head -5
+ls -lt $PAI_DIR/history/sessions/2025-12/ | head -5
 # Shows recent session files with their focus
 ```
 
@@ -627,15 +932,83 @@ ls -lt ~/.config/pai/history/sessions/2025-12/ | head -5
 
 INSTRUCTIONS FOR AI: Document configuration options.
 If no configuration is needed, write "No configuration required."
+
+IMPORTANT: Always document BOTH approaches for environment variables:
+1. .env file (for users who used the Kai Bundle wizard)
+2. Shell profile exports (for manual installation)
 -->
 
 **Environment variables:**
 
+**Option 1: `.env` file** (recommended - created by Kai Bundle wizard):
 ```bash
+# $PAI_DIR/.env
+DA="MyAI"
+PAI_DIR="$HOME/.config/pai"
+TIME_ZONE="America/Los_Angeles"
+```
+
+**Option 2: Shell profile** (for manual installation):
+```bash
+# Add to ~/.zshrc or ~/.bashrc
 export PAI_DIR="$HOME/.config/pai"
 export TIME_ZONE="America/Los_Angeles"
 export DA="MyAI"
 ```
+
+## Customization
+<!--
+(2048 words max)
+
+INSTRUCTIONS FOR AI: This section documents how users can personalize and customize
+the pack beyond basic configuration. This is OPTIONAL but highly encouraged for packs
+that benefit from personalization.
+
+Structure this section with two subsections:
+1. **Recommended Customization** - Personalization steps that significantly improve
+   the pack's value for individual users. These are things most users SHOULD do.
+2. **Optional Customization** - Additional tweaks users CAN make if desired.
+
+For each customization:
+- Explain WHAT to customize
+- Explain WHY it improves the experience
+- Provide specific STEPS or a process
+- Note the EXPECTED OUTCOME
+
+Example from Art Skill:
+- RECOMMENDED: Have an extended conversation with your AI about your aesthetic preferences,
+  capture this in Aesthetic.md, so all generated images reflect your personal style.
+- OPTIONAL: Add your own color palette, create custom prompt templates for your use cases.
+
+If no customization is applicable, write "No customization options. This pack works
+as-is without personalization."
+-->
+
+### Recommended Customization
+
+[Describe customization steps that significantly improve the pack for individual users]
+
+**What to Customize:** [The component/file/setting to personalize]
+
+**Why:** [How this improves the experience]
+
+**Process:**
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+**Expected Outcome:** [What users should expect after customization]
+
+---
+
+### Optional Customization
+
+[Describe additional tweaks users can make]
+
+| Customization | File | Impact |
+|--------------|------|--------|
+| [Custom option 1] | [file.md] | [What it affects] |
+| [Custom option 2] | [file.md] | [What it affects] |
 
 ## Credits
 <!--
@@ -649,46 +1022,49 @@ INSTRUCTIONS FOR AI: Attribution for ideas, inspiration, and contributions.
 ## Related Work
 <!--
 (256 words max)
-INSTRUCTIONS FOR AI: Link to similar or related projects.
+INSTRUCTIONS FOR AI: DO NOT FABRICATE. Leave empty or ask the maintainer.
+Only fill in if the maintainer provides specific projects to link.
 -->
 
-- **mem0**: https://github.com/mem0ai/mem0 - AI memory layer
-- **Obsidian**: https://obsidian.md - Knowledge management
+*None specified - maintainer to provide if applicable.*
 
 ## Works Well With
 <!--
 (256 words max)
-INSTRUCTIONS FOR AI: List packs that complement this one.
+INSTRUCTIONS FOR AI: DO NOT FABRICATE. Leave empty or ask the maintainer.
+Only fill in if the maintainer specifies which packs complement this one.
 -->
 
-- **session-progress**: Track multi-session work with handoff artifacts
-- **observability-server**: Visualize history data in real-time dashboard
+*None specified - maintainer to provide if applicable.*
 
 ## Recommended
 <!--
 (256 words max)
-INSTRUCTIONS FOR AI: Packs you recommend using alongside this one.
+INSTRUCTIONS FOR AI: DO NOT FABRICATE. Leave empty or ask the maintainer.
+Only fill in if the maintainer specifies recommended companion packs.
 -->
 
-- **session-progress**: Essential for multi-session work continuity
+*None specified - maintainer to provide if applicable.*
 
 ## Relationships
 <!--
 (512 words max total)
-INSTRUCTIONS FOR AI: Document how this pack relates to others in the ecosystem.
+INSTRUCTIONS FOR AI: DO NOT FABRICATE. Leave empty or ask the maintainer.
+These relationships must be REAL, verified connections to other packs.
+Only fill in if the maintainer provides specific pack relationships.
 -->
 
 ### Parent Of
-- **history-analytics**: Analyze patterns in captured history
+*None specified.*
 
 ### Child Of
-None - foundational infrastructure pack.
+*None specified.*
 
 ### Sibling Of
-- **session-progress**: Both address continuity
+*None specified.*
 
 ### Part Of Collection
-- **danielmiessler's Infrastructure Suite**: Core packs for AI memory
+*None specified.*
 
 ## Changelog
 <!--
@@ -709,12 +1085,15 @@ Format: ### {version} - {YYYY-MM-DD}
 | Section | Word Limit | Purpose |
 |---------|------------|---------|
 | `## Installation Prompt` | 512 | Context briefing for receiving AI |
+| `## What's Included` | 256 | Quick manifest of pack contents |
 | `## The Concept and/or Problem` | 2048 | What problem does this solve? |
 | `## The Solution` | 4096 | How does this pack solve it? |
+| `## Why This Is Different` | 128 | Differentiation from similar solutions |
 | `## Installation` | 16384 | Step-by-step with ALL code |
 | `## Invocation Scenarios` | 8192 | When/how it triggers |
 | `## Example Usage` | 8192 | Concrete examples |
-| `## Configuration` | 512 | Options and customization |
+| `## Configuration` | 512 | Options and environment variables |
+| `## Customization` | 2048 | Personalization beyond basic config |
 | `## Credits` | 256 | Attribution |
 | `## Related Work` | 256 | Similar projects |
 | `## Works Well With` | 256 | Complementary packs |
@@ -728,6 +1107,14 @@ Format: ### {version} - {YYYY-MM-DD}
 
 > **FOR AI AGENTS:** Before publishing, verify your pack includes ALL of these:
 
+### End-to-End Chain (MOST IMPORTANT)
+- [ ] **Chain test passed**: Traced every data flow - no "implement your own" gaps
+- [ ] **Server included**: If pack needs a server, full server code is in the pack
+- [ ] **Server management**: Start/stop/restart scripts included (if server required)
+- [ ] **No "beyond scope"**: Every component mentioned is fully implemented
+
+### Standard Requirements
+- [ ] **Why Different**: 64-word paragraph + 4 eight-word bullets
 - [ ] **Full context**: What, why, who needs it
 - [ ] **All code**: Complete, working implementations (no snippets, no placeholders)
 - [ ] **File locations**: Exact paths for every file
@@ -737,9 +1124,12 @@ Format: ### {version} - {YYYY-MM-DD}
 - [ ] **settings.json**: Exact JSON configuration with file location
 - [ ] **Environment variables**: Required vars and where to set them
 - [ ] **Verification steps**: How to confirm success
-- [ ] **256x256 icon**: Transparent PNG in blue/purple palette
+- [ ] **256x256 icon**: Transparent PNG in blue/purple palette (generated with `--remove-bg` flag)
+- [ ] **Customization section**: If pack benefits from personalization, document recommended and optional customizations
 
 **The test:** Can someone go from fresh Claude Code to fully working system using ONLY this pack?
+
+**The chain test:** Trace every data flow. If ANY link is missing, the pack is incomplete.
 
 ---
 

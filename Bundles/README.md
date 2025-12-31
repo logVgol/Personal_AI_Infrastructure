@@ -12,11 +12,11 @@ Curated collections of packs that work together to achieve a larger goal.
 
 ## What is a Bundle?
 
-A **bundle** is a curated collection of PAI packs designed to work together as a cohesive system.
+A **bundle** is a curated collection of PAI packs designed to work together as a harmonious system.
 
-Think of it this way:
-- **Packs** = Individual capabilities (ingredients)
-- **Bundles** = Curated collections (recipes)
+**Packs** are collections of functionality organized around a single theme or capability—each pack is a complete subsystem, not an individual ingredient. For example, a hook system pack contains an entire event-driven automation framework.
+
+**Bundles** are combinations of packs that work exceptionally well together—a harmonious system from a single author or unified around a single theme. The packs in a bundle were designed to integrate seamlessly, creating emergent capabilities greater than the sum of their parts.
 
 ### Bundle Types
 
@@ -24,7 +24,7 @@ Bundles can be organized around different purposes:
 
 | Bundle Type | Description | Example |
 |-------------|-------------|---------|
-| **Creator Bundle** | All packs from a specific creator | "Kai Bundle" - Daniel Miessler's complete system |
+| **Creator Bundle** | All packs from a specific creator | "The Official PAI (Kai) Bundle" - Daniel Miessler's complete system |
 | **Functionality Bundle** | Packs that serve a specific purpose | "Research Bundle" - tools for investigation |
 | **Domain Bundle** | Packs for a specific field | "Security Bundle" - security-focused tools |
 | **Starter Bundle** | Minimal set to get started | "Kai Lite" - essential packs only |
@@ -44,7 +44,7 @@ While you can install packs individually, bundles provide:
 
 | Bundle | Description | Tier | Status |
 |--------|-------------|------|--------|
-| [Kai](Kai/) | The official PAI bundle - complete personal AI infrastructure | Complete | Active |
+| [The Official PAI (Kai)](Kai/) | Complete personal AI infrastructure from Daniel Miessler's Kai system | Complete | Active |
 
 *More bundles coming soon*
 
@@ -59,10 +59,11 @@ While you can install packs individually, bundles provide:
 3. Say: "Install this bundle into my system"
 
 Your AI will:
-- Install packs in the correct order
-- Configure dependencies between packs
-- Verify each pack works
-- Validate the bundle as a whole
+- **Analyze first** - Review all packs that need to be installed and their dependencies
+- **Run the wizard** - If the bundle includes a setup wizard, walk you through it to collect personalization data (AI name, personality, contacts, technical preferences, etc.)
+- **Install in order** - Install packs in the correct sequence based on dependencies
+- **Configure connections** - Set up integrations between packs
+- **Verify installation** - Confirm each pack works and validate the bundle as a whole
 
 ### Option 2: Manual Installation
 
@@ -83,11 +84,11 @@ Bundles are collections - you can install just the packs you want from a bundle.
 
 | Aspect | Pack | Bundle |
 |--------|------|--------|
-| **Scope** | Single capability | Multiple capabilities |
-| **Structure** | Single markdown file | Directory with BUNDLE.md |
-| **Code** | Contains complete code | References pack files |
-| **Installation** | Standalone | Ordered sequence |
-| **Value** | Specific function | Curated experience |
+| **Scope** | Complete subsystem around one theme | Harmonious combination of subsystems |
+| **Structure** | Single markdown file | Directory with README.md |
+| **Code** | Contains complete code for that system | References pack files |
+| **Installation** | Can be standalone | Ordered sequence with dependencies |
+| **Value** | Complete functionality for one domain | Integrated experience across domains |
 
 ---
 
@@ -139,16 +140,17 @@ keywords: [searchable, tags]
 
 ### Required Sections
 
-1. **Purpose** - What the bundle achieves as a whole
-2. **Philosophy** - Principles behind the curation
-3. **Contents** - Complete pack listing with installation order
-4. **Pack Relationships** - How packs interact and depend on each other
-5. **Installation** - Combined installation steps
-6. **Verification** - How to verify the bundle is working
-7. **What You Get** - Capabilities after full installation
-8. **Credits** - Attribution
-9. **Related Bundles** - Similar or complementary bundles
-10. **Changelog** - Version history
+1. **Why This Is Different** - (128 words max) Opens with "This sounds similar to [ALTERNATIVE] which also does [CAPABILITY]. What makes this approach different?" followed by a 64-word paragraph and four 8-word bullets
+2. **Purpose** - What the bundle achieves as a whole
+3. **Philosophy** - Principles behind the curation
+4. **Contents** - Complete pack listing with installation order
+5. **Pack Relationships** - How packs interact and depend on each other
+6. **Installation** - Combined installation steps
+7. **Verification** - How to verify the bundle is working
+8. **What You Get** - Capabilities after full installation
+9. **Credits** - Attribution
+10. **Related Bundles** - Similar or complementary bundles
+11. **Changelog** - Version history
 
 ### Contents Section Format
 
@@ -246,7 +248,7 @@ Bundles reference packs by name. When a pack is updated, reinstall it to get the
 
 - [PAI Repository](https://github.com/danielmiessler/PAI)
 - [Pack System](../PACKS.md)
-- [Kai Bundle](Kai/) - Reference implementation
+- [The Official PAI (Kai) Bundle](Kai/) - Reference implementation
 
 ---
 
