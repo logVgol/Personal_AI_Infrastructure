@@ -2,7 +2,33 @@
 
 > **FOR AI AGENTS:** This document contains instructions for creating PAI Packs. When a user asks you to create a pack, follow this template exactly. Each section includes HTML comments with detailed instructions - read them carefully and replace the example content with your pack's actual content.
 
-Each pack is a single flat markdown file with YAML frontmatter and structured sections.
+## Pack Structure (v2.0)
+
+Each pack is a **directory** containing:
+
+```
+pack-name/
+├── README.md           # Pack overview, architecture, what it solves
+├── INSTALL.md          # Step-by-step installation instructions
+├── VERIFY.md           # Mandatory verification checklist
+└── src/                # Actual source code files
+    ├── hooks/          # Hook implementations (if applicable)
+    ├── tools/          # CLI tools and utilities
+    ├── skills/         # Skill definitions and workflows
+    └── config/         # Configuration files
+```
+
+### Why Directory Structure?
+
+The previous single-file approach had limitations:
+- **Token limits** - Large packs exceeded 25k token limits
+- **Code simplification** - AI agents would "helpfully" simplify code instead of copying verbatim
+- **No linting/testing** - Code embedded in markdown couldn't be validated
+
+The directory structure provides:
+- **Real code files** - TypeScript, YAML, Handlebars files that can be linted and tested
+- **Clear separation** - README for context, INSTALL for steps, VERIFY for validation
+- **Verbatim copying** - AI agents copy actual files instead of extracting from markdown
 
 **CRITICAL:** Packs must be COMPLETE. A pack must contain EVERYTHING needed to go from a fresh AI agent installation to a fully working system. No missing components, no "figure it out yourself," no snippets instead of full code.
 
@@ -1107,27 +1133,34 @@ Format: ### {version} - {YYYY-MM-DD}
 
 > **FOR AI AGENTS:** Before publishing, verify your pack includes ALL of these:
 
+### Directory Structure (REQUIRED)
+- [ ] **Pack directory created**: `pack-name/` in `Packs/` directory
+- [ ] **README.md**: Pack overview, problem/solution, architecture diagram
+- [ ] **INSTALL.md**: Step-by-step installation with file copy commands
+- [ ] **VERIFY.md**: Mandatory verification checklist with pass/fail criteria
+- [ ] **src/ directory**: All source code files (not embedded in markdown)
+
 ### End-to-End Chain (MOST IMPORTANT)
 - [ ] **Chain test passed**: Traced every data flow - no "implement your own" gaps
-- [ ] **Server included**: If pack needs a server, full server code is in the pack
+- [ ] **Server included**: If pack needs a server, full server code is in `src/`
 - [ ] **Server management**: Start/stop/restart scripts included (if server required)
 - [ ] **No "beyond scope"**: Every component mentioned is fully implemented
 
 ### Standard Requirements
 - [ ] **Why Different**: 64-word paragraph + 4 eight-word bullets
 - [ ] **Full context**: What, why, who needs it
-- [ ] **All code**: Complete, working implementations (no snippets, no placeholders)
-- [ ] **File locations**: Exact paths for every file
-- [ ] **Directory structure**: Commands to create directories
-- [ ] **Hook code**: If hooks required, full implementations
-- [ ] **Library dependencies**: All lib/ files included
-- [ ] **settings.json**: Exact JSON configuration with file location
-- [ ] **Environment variables**: Required vars and where to set them
-- [ ] **Verification steps**: How to confirm success
-- [ ] **256x256 icon**: Transparent PNG in blue/purple palette (generated with `--remove-bg` flag)
-- [ ] **Customization section**: If pack benefits from personalization, document recommended and optional customizations
+- [ ] **All code in src/**: Complete, working implementations (no snippets, no placeholders)
+- [ ] **File locations**: Exact paths for every file in INSTALL.md
+- [ ] **Directory structure**: Commands to create directories in INSTALL.md
+- [ ] **Hook code**: If hooks required, full implementations in `src/hooks/`
+- [ ] **Library dependencies**: All lib/ files included in `src/`
+- [ ] **settings.json**: Exact JSON configuration in `src/config/`
+- [ ] **Environment variables**: Required vars documented in INSTALL.md
+- [ ] **Verification steps**: VERIFY.md checklist with commands
+- [ ] **256x256 icon**: Transparent PNG in `Packs/icons/` (generated with `--remove-bg` flag)
+- [ ] **Customization section**: If pack benefits from personalization, document in README.md
 
-**The test:** Can someone go from fresh Claude Code to fully working system using ONLY this pack?
+**The test:** Can someone go from fresh Claude Code to fully working system using ONLY this pack directory?
 
 **The chain test:** Trace every data flow. If ANY link is missing, the pack is incomplete.
 
@@ -1135,9 +1168,10 @@ Format: ### {version} - {YYYY-MM-DD}
 
 ## File Naming Convention
 
-- Flat files in `Packs/` directory
-- kebab-case: `history-system.md`, `session-progress.md`
-- No subdirectories per pack
+- Pack directories in `Packs/` directory
+- kebab-case for directory names: `kai-history-system/`, `kai-hook-system/`
+- Each pack directory contains: `README.md`, `INSTALL.md`, `VERIFY.md`, `src/`
+- Source files in `src/` use appropriate extensions: `.ts`, `.yaml`, `.hbs`, etc.
 
 ---
 

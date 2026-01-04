@@ -2,16 +2,83 @@
   <img src="kai.png" alt="The Official PAI (Kai) Bundle" width="256">
 </p>
 
-# The Official PAI (Kai) Bundle v1.2.0
+# The Official PAI (Kai) Bundle v2.0.0
 
 > **FOR AI AGENTS:** You are about to install the complete Kai bundle. Run the wizard, then install each pack in order.
+
+---
+
+## 🚨 CRITICAL: Full Implementation Required (For AI Agents)
+
+> **MANDATORY: Read this section before installing ANY pack in this bundle.**
+
+### The Problem
+
+AI agents systematically create "simplified" versions of pack implementations. Instead of the full 268-line specification, they create 50-line "equivalents." **This breaks the system and wastes the user's time.**
+
+### The Rules for This Bundle
+
+1. **EVERY PACK = FULL IMPLEMENTATION** - No shortcuts, no simplification
+2. **EVERY FILE SPECIFIED = EVERY FILE CREATED** - Count them
+3. **EVERY LINE OF CODE = EVERY LINE OF CODE** - Don't summarize
+4. **IF YOU CAN'T DO IT FULLY, STOP AND SAY SO** - Don't create partial implementations
+
+### Per-Pack Installation Checklist
+
+**For EACH pack you install, confirm:**
+
+```markdown
+## Pack: [pack-name] Installation Verification
+
+- [ ] All directories created as specified
+- [ ] All files created (counted: X of Y)
+- [ ] Code files contain COMPLETE implementations
+- [ ] YAML/JSON files contain ALL entries
+- [ ] Verification commands passed
+- [ ] No "simplified" or "equivalent" versions created
+```
+
+### Full Bundle Completion Checklist
+
+**After ALL packs are installed, confirm:**
+
+```markdown
+## Kai Bundle Installation Complete
+
+### Pack Status
+- [ ] kai-hook-system - FULLY installed, verified
+- [ ] kai-history-system - FULLY installed, verified
+- [ ] kai-core-install - FULLY installed, verified
+- [ ] kai-voice-system - FULLY installed, verified (if applicable)
+
+### Integration Status
+- [ ] ~/.claude directory structure correct
+- [ ] settings.json contains all hook registrations
+- [ ] Startup hook fires on new session
+- [ ] Claude Code restarted to activate hooks
+
+### Quality Confirmation
+- [ ] NO simplified implementations
+- [ ] NO missing files
+- [ ] NO summarized configurations
+- [ ] User informed of required customizations
+```
+
+**Present this completed checklist to the user. If ANY item fails, you are NOT done.**
+
+---
 
 ## Quick Start
 
 ```bash
-# Run the installation wizard
+# Fresh install (with backup)
 bun run install.ts
+
+# Update existing installation (preserves config)
+bun run install.ts --update
 ```
+
+### Fresh Install
 
 The wizard will:
 1. **Detect existing AI systems** - Scans for Claude Code, Cursor, Windsurf, Cline, Aider, Continue
@@ -23,6 +90,21 @@ The wizard will:
 7. **Configure environment variables** automatically
 
 **Safety First:** The installer will not modify anything until you explicitly confirm. Your original files are always preserved in the backup.
+
+### Update Mode
+
+After pulling new changes from the repo, use `--update` to apply them without losing your configuration:
+
+```bash
+git pull
+bun run install.ts --update
+```
+
+Update mode will:
+- **Skip backup** - Your files stay in place
+- **Read existing config** - Uses your .env values as defaults
+- **Preserve customizations** - Hooks, history, and personal settings untouched
+- **Update infrastructure** - Only refreshes core skill files
 
 ---
 
@@ -45,20 +127,30 @@ When fully installed, the Kai bundle gives you:
 
 | # | Pack | Purpose | Dependencies |
 |---|------|---------|--------------|
-| 1 | [kai-hook-system](../../Packs/kai-hook-system.md) | Event-driven automation | None |
-| 2 | [kai-history-system](../../Packs/kai-history-system.md) | Memory and capture | Hooks |
-| 3 | [kai-core-install](../../Packs/kai-core-install.md) | Skills + Identity + Architecture | Hooks, History |
-| 4 | [kai-voice-system](../../Packs/kai-voice-system.md) | Voice notifications (optional) | Hooks, Core |
+| 1 | [kai-hook-system](../../Packs/kai-hook-system/) | Event-driven automation | None |
+| 2 | [kai-history-system](../../Packs/kai-history-system/) | Memory and capture | Hooks |
+| 3 | [kai-core-install](../../Packs/kai-core-install/) | Skills + Identity + Architecture | Hooks, History |
+| 4 | [kai-prompting-skill](../../Packs/kai-prompting-skill/) | Meta-prompting & templates | Core |
+| 5 | [kai-voice-system](../../Packs/kai-voice-system/) | Voice notifications (optional) | Hooks, Core |
+| 6 | [kai-agents-skill](../../Packs/kai-agents-skill/) | Dynamic agent composition (optional) | Core, Voice (optional) |
+| 7 | [kai-art-skill](../../Packs/kai-art-skill/) | Visual content generation (optional) | Core |
+| 8 | [kai-observability-server](../../Packs/kai-observability-server/) | Multi-agent monitoring (optional) | Hooks |
 
 ### How to Install Packs
 
-Give each pack file to your AI and ask it to install:
+Give each pack directory to your AI and ask it to install:
 
 ```
-"Install kai-hook-system pack"
+"Install the kai-hook-system pack from PAI/Packs/kai-hook-system/"
 ```
 
-The AI will read the pack and follow the installation instructions inside.
+The AI will:
+1. Read the pack's `README.md` for context
+2. Follow `INSTALL.md` step by step
+3. Copy files from `src/` to your system
+4. Complete `VERIFY.md` checklist to confirm success
+
+**Note:** Each pack is now a directory (v2.0 format) containing README.md, INSTALL.md, VERIFY.md, and a `src/` folder with actual code files.
 
 ### Why Order Matters
 
@@ -115,9 +207,15 @@ mv ~/.claude-BACKUP ~/.claude
 
 ## What Are Packs and Bundles?
 
-**Packs** are complete subsystems organized around a single capability. For example, `kai-hook-system` provides an entire event-driven automation framework.
+**Packs** are complete subsystems organized around a single capability. Each pack is a directory containing:
+- `README.md` - Overview, architecture, what it solves
+- `INSTALL.md` - Step-by-step installation instructions
+- `VERIFY.md` - Mandatory verification checklist
+- `src/` - Actual source code files (TypeScript, YAML, etc.)
 
-**Bundles** are curated combinations of packs designed to work together. The Kai Bundle is 4 packs that form a complete AI infrastructure.
+For example, `kai-hook-system` provides an entire event-driven automation framework with all code files ready to copy.
+
+**Bundles** are curated combinations of packs designed to work together. The Kai Bundle is 8 packs that form a complete AI infrastructure (4 required + 4 optional).
 
 ---
 
@@ -143,6 +241,13 @@ The Kai system embeds these principles from [PAI](https://danielmiessler.com/blo
 ---
 
 ## Changelog
+
+### 2.0.0 - 2025-12-31
+- **Directory-based Packs:** All packs migrated from single markdown files to directory structure
+- **New Pack Format:** Each pack now contains README.md, INSTALL.md, VERIFY.md, and src/ directory
+- **Actual Code Files:** Source code now in real .ts, .yaml, .hbs files (not embedded in markdown)
+- **Four New Packs:** Added kai-prompting-skill, kai-agents-skill, kai-art-skill, kai-observability-server
+- **Improved Installation:** AI agents copy actual files instead of extracting from markdown blocks
 
 ### 1.2.0 - 2025-12-30
 - **AI System Detection:** Scans for Claude Code, Cursor, Windsurf, Cline, Aider, Continue

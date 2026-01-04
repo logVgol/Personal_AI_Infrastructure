@@ -22,9 +22,94 @@ The old approach was "here's my whole system—clone it and customize." That cre
 - **Self-contained** - Works without understanding the rest of the system
 - **Independently installable** - Add what you need, skip what you don't
 - **Platform-agnostic** - Works with Claude Code, OpenCode, Cursor, or custom systems
-- **AI-installable** - Give your AI the pack file, it handles the rest
+- **AI-installable** - Give your AI the pack directory, it handles the rest
 
 **The key insight:** Give your AI the complete context it needs, and it can integrate the pack into *your* system autonomously.
+
+---
+
+## Pack Structure (v2.0)
+
+Each pack is now a **directory** containing:
+
+```
+pack-name/
+├── README.md           # Pack overview, architecture, what it solves
+├── INSTALL.md          # Step-by-step installation instructions
+├── VERIFY.md           # Mandatory verification checklist
+└── src/                # Actual source code files
+    ├── hooks/          # Hook implementations (if applicable)
+    ├── tools/          # CLI tools and utilities
+    ├── skills/         # Skill definitions and workflows
+    └── config/         # Configuration files
+```
+
+### Why Directory Structure?
+
+The previous single-file approach had limitations:
+- **Token limits** - Large packs exceeded 25k token limits
+- **Code simplification** - AI agents would "helpfully" simplify code instead of copying verbatim
+- **No linting/testing** - Code embedded in markdown couldn't be validated
+
+The directory structure provides:
+- **Real code files** - TypeScript, YAML, Handlebars files that can be linted and tested
+- **Clear separation** - README for context, INSTALL for steps, VERIFY for validation
+- **Verbatim copying** - AI agents copy actual files instead of extracting from markdown
+
+### AI Installation Flow
+
+When installing a pack:
+1. AI reads `README.md` for context and architecture understanding
+2. AI follows `INSTALL.md` step-by-step, copying files from `src/` to `$PAI_DIR/`
+3. AI completes `VERIFY.md` checklist to confirm success
+
+---
+
+## 🚨 CRITICAL: Full Implementation Required (For AI Agents)
+
+> **FOR AI AGENTS INSTALLING PACKS:** This section is MANDATORY. Read it before installing ANY pack.
+
+### The Problem
+
+AI agents often "helpfully" simplify pack implementations. Instead of copying the full 268-line documented specification, they create a 50-line "equivalent" version. **This is WRONG.**
+
+### The Rule
+
+**Copy the COMPLETE files from `src/`. No simplification. No shortcuts. No "equivalents."**
+
+When a pack contains a 500-line TypeScript file, you copy all 500 lines. When it specifies 8 files, you copy all 8 files. When it includes detailed YAML with 100 entries, you include all 100 entries.
+
+### Why This Matters
+
+- Packs are **production-tested** - every line exists for a reason
+- "Simplified" versions break integration with other packs
+- Missing configuration causes silent failures
+- Users shouldn't need multiple correction cycles
+
+### Anti-Simplification Directives
+
+1. **NEVER reduce code complexity** - If the pack has verbose implementations, keep them verbose
+2. **NEVER skip optional sections** - "Optional" means optional for the user, not for you to omit
+3. **NEVER create "equivalent" versions** - Copy the EXACT files from `src/`
+4. **NEVER summarize YAML/JSON** - Include every field, every entry, every comment
+5. **ALWAYS complete VERIFY.md** - If any check fails, installation is NOT complete
+
+### Mandatory Completion Checklist
+
+**After every pack installation, you MUST complete the VERIFY.md checklist:**
+
+```markdown
+## Installation Verification
+
+- [ ] All directories from INSTALL.md created
+- [ ] All files from `src/` copied to target locations
+- [ ] Each code file contains COMPLETE implementation (diff check)
+- [ ] YAML/JSON files contain ALL entries (not summarized)
+- [ ] Dependencies installed (bun add, etc.)
+- [ ] Verification commands from VERIFY.md run and passed
+```
+
+**If ANY checkbox fails, you have NOT completed the installation.**
 
 ---
 
@@ -49,43 +134,19 @@ PAI System
 
 ---
 
-## What's in a Pack?
-
-Each pack is a single markdown file containing everything needed to go from zero to working:
-
-- **The Problem** - What challenge this pack solves
-- **The Solution** - How it solves it (with architecture diagrams)
-- **Complete Code** - All hooks, tools, libraries, and configuration
-- **Installation Instructions** - Step-by-step for both AI and manual installation
-- **Verification Steps** - How to confirm it's working
-- **Examples** - Real usage scenarios
-- **Customization** - How to personalize the pack for your specific needs
-
-**Key principle:** Give your AI the pack file, and it can install the entire capability into your system autonomously.
-
-### Customization Section
-
-Many packs include a **Customization** section with:
-
-- **Recommended Customization** - Personalization that significantly improves the pack's value (most users should do this)
-- **Optional Customization** - Additional tweaks for advanced users
-
-For example, the Art Skill pack recommends having an extended conversation with your AI about your aesthetic preferences, then capturing that in the Aesthetic.md file so all generated images reflect your personal style.
-
----
-
 ## Available Packs
 
-| Pack | Version | Category | Bundle | Description |
-|------|---------|----------|--------|-------------|
-| [**kai-hook-system**](kai-hook-system.md) | 1.0.0 | Foundation | [Kai](../Bundles/Kai/) | Event-driven automation framework - the foundation for all hook-based capabilities |
-| [**kai-history-system**](kai-history-system.md) | 1.0.0 | Infrastructure | [Kai](../Bundles/Kai/) | Granular context-tracking that captures all work, decisions, and learnings automatically |
-| [**kai-core-install**](kai-core-install.md) | 1.0.0 | Core | [Kai](../Bundles/Kai/) | Skills + Identity + Architecture - the complete foundation with routing, response format, and tracking |
-| [**kai-voice-system**](kai-voice-system.md) | 1.1.0 | Notifications | [Kai](../Bundles/Kai/) | Voice notifications with ElevenLabs TTS and prosody enhancement for natural speech |
-| [**kai-observability-server**](kai-observability-server.md) | 1.0.0 | Observability | [Kai](../Bundles/Kai/) | Real-time multi-agent monitoring dashboard with WebSocket streaming |
-| [**kai-art-skill**](kai-art-skill.md) | 1.0.0 | Creativity | [Kai](../Bundles/Kai/) | Visual content generation with Excalidraw hand-drawn aesthetic - diagrams, comics, illustrations |
-| [**kai-agents-skill**](kai-agents-skill.md) | 1.0.0 | Delegation | [Kai](../Bundles/Kai/) | Dynamic agent composition - create custom agents with unique personalities, voices, and trait combinations |
-| [**kai-prompting-skill**](kai-prompting-skill.md) | 1.0.0 | Methodology | [Kai](../Bundles/Kai/) | Meta-prompting system with Handlebars templates, Claude 4.x best practices, and the Ultimate Prompt Template |
+| Pack | Version | Category | Description |
+|------|---------|----------|-------------|
+| [**kai-hook-system**](kai-hook-system/) | 1.0.0 | Foundation | Event-driven automation framework - the foundation for all hook-based capabilities |
+| [**kai-history-system**](kai-history-system/) | 1.0.0 | Infrastructure | Granular context-tracking that captures all work, decisions, and learnings automatically |
+| [**kai-core-install**](kai-core-install/) | 1.0.0 | Core | Skills + Identity + Architecture - the complete foundation with routing, response format, and tracking |
+| [**kai-voice-system**](kai-voice-system/) | 1.1.0 | Notifications | Voice notifications with ElevenLabs TTS and prosody enhancement for natural speech |
+| [**kai-observability-server**](kai-observability-server/) | 1.0.0 | Observability | Real-time multi-agent monitoring dashboard with WebSocket streaming |
+| [**kai-art-skill**](kai-art-skill/) | 1.0.0 | Creativity | Visual content generation with Excalidraw hand-drawn aesthetic - diagrams, comics, illustrations |
+| [**kai-agents-skill**](kai-agents-skill/) | 1.0.0 | Delegation | Dynamic agent composition - create custom agents with unique personalities, voices, and trait combinations |
+| [**kai-prompting-skill**](kai-prompting-skill/) | 1.0.0 | Methodology | Meta-prompting system with Handlebars templates, Claude 4.x best practices, and the Ultimate Prompt Template |
+| [**kai-browser-skill**](kai-browser-skill/) | 1.0.0 | Automation | Code-first browser automation with Playwright - 99% token savings over MCP, screenshots, verification, web testing |
 
 ---
 
@@ -101,7 +162,8 @@ Packs have dependencies. Install in this order:
 5. kai-voice-system           ← Depends on hooks, core-install
 6. kai-agents-skill           ← Depends on core-install, optional voice-system
 7. kai-art-skill              ← Depends on core-install
-8. kai-observability-server   ← Optional, depends on hooks
+8. kai-browser-skill          ← Optional, standalone (only needs Bun + Playwright)
+9. kai-observability-server   ← Optional, depends on hooks
 ```
 
 **Or install the complete [Kai Bundle](../Bundles/Kai/)** which handles ordering automatically.
@@ -112,22 +174,24 @@ Packs have dependencies. Install in this order:
 
 ### Option 1: AI-Assisted (Recommended)
 
-Give the pack file to your AI agent:
+Give the pack directory to your AI agent:
 
 ```
-Install this pack into my system. Use PAI_DIR="~/.config/pai" and DA="MyAI".
+Install the kai-hook-system pack from PAI/Packs/kai-hook-system/.
+Use PAI_DIR="~/.config/pai" and DA="MyAI".
 ```
 
 Your AI will:
-1. Check dependencies
-2. Create directories
-3. Save all code files
-4. Configure hooks
-5. Verify installation
+1. Read `README.md` for context
+2. Follow `INSTALL.md` step by step
+3. Copy files from `src/` to your system
+4. Complete `VERIFY.md` checklist
 
 ### Option 2: Manual
 
-Open any pack file and follow the "Installation" section step by step.
+1. Open the pack's `INSTALL.md`
+2. Follow each step, copying files from `src/` to the specified locations
+3. Complete the `VERIFY.md` checklist to confirm success
 
 ---
 
@@ -160,6 +224,7 @@ See [.env.example](../.env.example) for the complete list of supported variables
 | **Delegation** | Agent orchestration and parallel execution | Agents Skill |
 | **Creativity** | Visual and creative content generation | Art Skill |
 | **Methodology** | Prompt engineering and meta-prompting | Prompting Skill |
+| **Automation** | Browser automation and web verification | Browser Skill |
 
 ---
 
@@ -167,13 +232,13 @@ See [.env.example](../.env.example) for the complete list of supported variables
 
 See [PAIPackTemplate.md](../Tools/PAIPackTemplate.md) for the complete pack specification.
 
-**Quick checklist:**
-- [ ] Single markdown file with YAML frontmatter
+**Quick checklist for directory-based packs:**
+- [ ] `README.md` with YAML frontmatter, problem/solution, architecture
+- [ ] `INSTALL.md` with step-by-step instructions
+- [ ] `VERIFY.md` with mandatory completion checklist
+- [ ] `src/` directory with actual code files (not embedded in markdown)
 - [ ] 256x256 transparent icon in `icons/`
 - [ ] Complete, working code (no snippets or placeholders)
-- [ ] End-to-end implementation (no "beyond scope" gaps)
-- [ ] Both AI-assisted and manual installation instructions
-- [ ] Verification commands to confirm success
 
 ---
 
@@ -186,6 +251,20 @@ Every pack in this directory must be:
 3. **Tested** - Verified working in production (extracted from Kai)
 4. **Sanitized** - No personal data, credentials, or hardcoded paths
 5. **Documented** - Clear problem statement, solution, and examples
+6. **Verifiable** - VERIFY.md checklist confirms successful installation
+
+---
+
+## Migration from v1.0 (Single-File) to v2.0 (Directory)
+
+If you have existing single-file packs:
+
+1. Create directory with pack name (e.g., `kai-hook-system/`)
+2. Extract frontmatter and overview sections to `README.md`
+3. Extract installation steps to `INSTALL.md`
+4. Extract verification steps to `VERIFY.md`
+5. Extract code blocks to actual files in `src/`
+6. Update any pack references to use directory paths
 
 ---
 

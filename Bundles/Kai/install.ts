@@ -1,16 +1,24 @@
 #!/usr/bin/env bun
 /**
- * Kai Bundle Installation Wizard v1.2.0
+ * Kai Bundle Installation Wizard v1.3.0
  *
  * Simplified interactive CLI wizard for setting up the Kai bundle.
  * Auto-detects AI system directories and creates safety backups.
  *
- * Usage: bun run install.ts
+ * Usage:
+ *   bun run install.ts           # Fresh install with backup
+ *   bun run install.ts --update  # Update existing installation (no backup, preserves config)
  */
 
 import { $ } from "bun";
 import * as readline from "readline";
 import { existsSync } from "fs";
+
+// =============================================================================
+// UPDATE MODE DETECTION
+// =============================================================================
+
+const isUpdateMode = process.argv.includes("--update") || process.argv.includes("-u");
 
 // =============================================================================
 // TYPES
@@ -52,6 +60,15 @@ async function askWithDefault(question: string, defaultValue: string): Promise<s
   return answer || defaultValue;
 }
 
+function isValidTimezone(tz: string): boolean {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function askYesNo(question: string, defaultYes = true): Promise<boolean> {
   const defaultStr = defaultYes ? "Y/n" : "y/N";
   const answer = await ask(`${question} [${defaultStr}]: `);
@@ -63,6 +80,70 @@ function printHeader(title: string) {
   console.log("\n" + "=".repeat(60));
   console.log(`  ${title}`);
   console.log("=".repeat(60) + "\n");
+}
+
+// =============================================================================
+// EXISTING CONFIG DETECTION
+// =============================================================================
+
+interface ExistingConfig {
+  daName?: string;
+  timeZone?: string;
+  userName?: string;
+  elevenLabsApiKey?: string;
+  elevenLabsVoiceId?: string;
+}
+
+async function readExistingConfig(): Promise<ExistingConfig> {
+  const claudeDir = process.env.PAI_DIR || `${process.env.HOME}/.claude`;
+  const config: ExistingConfig = {};
+
+  // Try to read from .env file
+  try {
+    const envPath = `${claudeDir}/.env`;
+    if (existsSync(envPath)) {
+      const envContent = await Bun.file(envPath).text();
+      const lines = envContent.split("\n");
+      for (const line of lines) {
+        const match = line.match(/^([A-Z_]+)=(.*)$/);
+        if (match) {
+          const [, key, value] = match;
+          switch (key) {
+            case "DA":
+              config.daName = value;
+              break;
+            case "TIME_ZONE":
+              config.timeZone = value;
+              break;
+            case "ELEVENLABS_API_KEY":
+              config.elevenLabsApiKey = value;
+              break;
+            case "ELEVENLABS_VOICE_ID":
+              config.elevenLabsVoiceId = value;
+              break;
+          }
+        }
+      }
+    }
+  } catch {
+    // No .env file, continue with empty config
+  }
+
+  // Try to read userName from SKILL.md
+  try {
+    const skillPath = `${claudeDir}/skills/CORE/SKILL.md`;
+    if (existsSync(skillPath)) {
+      const skillContent = await Bun.file(skillPath).text();
+      const userMatch = skillContent.match(/Role:\s*(\w+)'s AI assistant/);
+      if (userMatch) {
+        config.userName = userMatch[1];
+      }
+    }
+  } catch {
+    // No SKILL.md, continue
+  }
+
+  return config;
 }
 
 // =============================================================================
@@ -100,6 +181,22 @@ async function detectAndBackup(): Promise<boolean> {
   const detectedSystems = getDetectedSystems(allSystems);
   const claudeDir = `${process.env.HOME}/.claude`;
   const backupDir = `${process.env.HOME}/.claude-BACKUP`;
+
+  // In update mode, skip backup entirely
+  if (isUpdateMode) {
+    if (!existsSync(claudeDir)) {
+      console.log("❌ Update mode requires an existing installation.");
+      console.log("   Run without --update for a fresh install.\n");
+      return false;
+    }
+    console.log("📦 Update mode: Preserving existing configuration.\n");
+    console.log("   ✓ Skipping backup (your files stay in place)");
+    console.log("   ✓ Will use existing .env values as defaults");
+    console.log("   ✓ Only updating infrastructure files\n");
+
+    const proceed = await askYesNo("Proceed with update?", true);
+    return proceed;
+  }
 
   console.log("Scanning for existing AI system directories...\n");
 
@@ -184,11 +281,36 @@ async function detectAndBackup(): Promise<boolean> {
 async function gatherConfig(): Promise<WizardConfig> {
   printHeader("KAI BUNDLE SETUP");
 
-  console.log("This wizard will configure your AI assistant.\n");
+  // In update mode, read existing config first
+  const existing = isUpdateMode ? await readExistingConfig() : {};
+
+  if (isUpdateMode) {
+    console.log("Update mode: Using existing configuration as defaults.\n");
+    if (existing.daName) console.log(`  Found AI name: ${existing.daName}`);
+    if (existing.userName) console.log(`  Found user: ${existing.userName}`);
+    if (existing.timeZone) console.log(`  Found timezone: ${existing.timeZone}`);
+    if (existing.elevenLabsApiKey) console.log(`  Found ElevenLabs API key: ****${existing.elevenLabsApiKey.slice(-4)}`);
+    console.log();
+
+    // In update mode, just confirm existing values
+    const keepExisting = await askYesNo("Keep existing configuration?", true);
+    if (keepExisting && existing.daName && existing.userName && existing.timeZone) {
+      return {
+        daName: existing.daName,
+        timeZone: existing.timeZone,
+        userName: existing.userName,
+        elevenLabsApiKey: existing.elevenLabsApiKey,
+        elevenLabsVoiceId: existing.elevenLabsVoiceId,
+      };
+    }
+    console.log("\nLet's update your configuration:\n");
+  } else {
+    console.log("This wizard will configure your AI assistant.\n");
+  }
 
   // Check for existing PAI_DIR environment variable
   const existingPaiDir = process.env.PAI_DIR;
-  if (existingPaiDir) {
+  if (existingPaiDir && !isUpdateMode) {
     console.log(`📍 Existing PAI_DIR detected: ${existingPaiDir}\n`);
     const useExisting = await askYesNo(
       `Use existing PAI_DIR (${existingPaiDir}) for installation?`,
@@ -200,34 +322,51 @@ async function gatherConfig(): Promise<WizardConfig> {
       console.log("\n⚠️  Installation will use ~/.claude (standard Claude Code location)");
       console.log("   You may need to update your PAI_DIR environment variable after installation.\n");
     }
-  } else {
+  } else if (!isUpdateMode) {
     console.log("Installation directory: ~/.claude (standard Claude Code location)\n");
   }
 
-  // Essential questions only
-  const userName = await ask("What is your name? ");
+  // Essential questions - use existing values as defaults in update mode
+  const userName = existing.userName
+    ? await askWithDefault("What is your name?", existing.userName)
+    : await ask("What is your name? ");
 
   const daName = await askWithDefault(
     "What would you like to name your AI assistant?",
-    "Kai"
+    existing.daName || "Kai"
   );
 
-  const timeZone = await askWithDefault(
-    "What's your timezone?",
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+  // Get timezone with validation
+  const defaultTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const existingTz = existing.timeZone && isValidTimezone(existing.timeZone) ? existing.timeZone : defaultTz;
+  let timeZone = await askWithDefault("What's your timezone?", existingTz);
 
-  // Voice is optional
-  const wantsVoice = await askYesNo("\nDo you want voice notifications? (requires ElevenLabs API key)", false);
+  while (!isValidTimezone(timeZone)) {
+    console.log(`  ⚠️  "${timeZone}" is not a valid IANA timezone.`);
+    console.log(`     Examples: America/New_York, Europe/London, Asia/Tokyo`);
+    timeZone = await askWithDefault("What's your timezone?", defaultTz);
+  }
+
+  // Voice - in update mode, default to yes if already configured
+  const defaultWantsVoice = !!existing.elevenLabsApiKey;
+  const wantsVoice = await askYesNo(
+    "\nDo you want voice notifications? (requires ElevenLabs API key)",
+    defaultWantsVoice
+  );
 
   let elevenLabsApiKey: string | undefined;
   let elevenLabsVoiceId: string | undefined;
 
   if (wantsVoice) {
-    elevenLabsApiKey = await ask("Enter your ElevenLabs API key: ");
+    if (existing.elevenLabsApiKey) {
+      const keepKey = await askYesNo(`Keep existing ElevenLabs API key (****${existing.elevenLabsApiKey.slice(-4)})?`, true);
+      elevenLabsApiKey = keepKey ? existing.elevenLabsApiKey : await ask("Enter your ElevenLabs API key: ");
+    } else {
+      elevenLabsApiKey = await ask("Enter your ElevenLabs API key: ");
+    }
     elevenLabsVoiceId = await askWithDefault(
       "Enter your preferred voice ID",
-      "s3TPKV1kjDlVtZbl4Ksh"
+      existing.elevenLabsVoiceId || "s3TPKV1kjDlVtZbl4Ksh"
     );
   }
 
@@ -407,6 +546,7 @@ Generated: ${new Date().toISOString().split("T")[0]}
 // =============================================================================
 
 async function main() {
+  const modeLabel = isUpdateMode ? "UPDATE MODE" : "v1.3.0";
   console.log(`
 ╔═══════════════════════════════════════════════════════════════════╗
 ║                                                                   ║
@@ -417,7 +557,7 @@ async function main() {
 ║   ██║  ██╗██║  ██║██║    ██████╔╝╚██████╔╝██║ ╚████║██████╔╝███████╗
 ║   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═════╝ ╚══════╝
 ║                                                                   ║
-║              Personal AI Infrastructure - v1.2.0                  ║
+║              Personal AI Infrastructure - ${modeLabel.padEnd(12)}         ║
 ║                                                                   ║
 ╚═══════════════════════════════════════════════════════════════════╝
   `);
@@ -462,17 +602,57 @@ async function main() {
     const coreStackMd = generateCoreStackMd(config);
     await Bun.write(`${claudeDir}/skills/CORE/CoreStack.md`, coreStackMd);
 
-    // Create .env file
+    // Create .env file (no quotes around values - .env format standard)
     console.log("Creating .env file...");
     const envFileContent = `# PAI Environment Configuration
 # Created by Kai Bundle installer - ${new Date().toISOString().split("T")[0]}
 
-DA="${config.daName}"
-TIME_ZONE="${config.timeZone}"
-${config.elevenLabsApiKey ? `ELEVENLABS_API_KEY="${config.elevenLabsApiKey}"` : "# ELEVENLABS_API_KEY="}
-${config.elevenLabsVoiceId ? `ELEVENLABS_VOICE_ID="${config.elevenLabsVoiceId}"` : "# ELEVENLABS_VOICE_ID="}
+DA=${config.daName}
+TIME_ZONE=${config.timeZone}
+${config.elevenLabsApiKey ? `ELEVENLABS_API_KEY=${config.elevenLabsApiKey}` : "# ELEVENLABS_API_KEY="}
+${config.elevenLabsVoiceId ? `ELEVENLABS_VOICE_ID=${config.elevenLabsVoiceId}` : "# ELEVENLABS_VOICE_ID="}
 `;
     await Bun.write(`${claudeDir}/.env`, envFileContent);
+
+    // Create settings.json with environment variables for Claude Code
+    // This ensures env vars are available immediately without shell sourcing
+    console.log("Creating settings.json...");
+    const settingsJson: Record<string, unknown> = {
+      env: {
+        DA: config.daName,
+        TIME_ZONE: config.timeZone,
+        PAI_DIR: claudeDir,
+        PAI_SOURCE_APP: config.daName,
+      },
+    };
+    if (config.elevenLabsApiKey) {
+      (settingsJson.env as Record<string, string>).ELEVENLABS_API_KEY = config.elevenLabsApiKey;
+    }
+    if (config.elevenLabsVoiceId) {
+      (settingsJson.env as Record<string, string>).ELEVENLABS_VOICE_ID = config.elevenLabsVoiceId;
+    }
+
+    // Check for existing settings.json and merge if present
+    const settingsPath = `${claudeDir}/settings.json`;
+    let existingSettings: Record<string, unknown> = {};
+    try {
+      const existingContent = await Bun.file(settingsPath).text();
+      existingSettings = JSON.parse(existingContent);
+    } catch {
+      // No existing settings.json, start fresh
+    }
+
+    // Merge env vars (preserve other settings like hooks)
+    const mergedSettings = {
+      ...existingSettings,
+      env: {
+        ...(existingSettings.env as Record<string, string> || {}),
+        ...(settingsJson.env as Record<string, string>),
+      },
+    };
+
+    await Bun.write(settingsPath, JSON.stringify(mergedSettings, null, 2) + "\n");
+    console.log("✓ Created settings.json with environment variables");
 
     // Add to shell profile
     console.log("Updating shell profile...");
@@ -513,9 +693,34 @@ ${config.elevenLabsVoiceId ? `export ELEVENLABS_VOICE_ID="${config.elevenLabsVoi
     }
 
     // Summary
-    printHeader("INSTALLATION COMPLETE");
+    printHeader(isUpdateMode ? "UPDATE COMPLETE" : "INSTALLATION COMPLETE");
 
-    console.log(`
+    if (isUpdateMode) {
+      console.log(`
+Your Kai system has been updated:
+
+  📁 Installation: ~/.claude
+  🤖 Assistant Name: ${config.daName}
+  👤 User: ${config.userName}
+  🌍 Timezone: ${config.timeZone}
+  🔊 Voice: ${config.elevenLabsApiKey ? "Enabled" : "Disabled"}
+
+Files updated:
+  - ~/.claude/skills/CORE/SKILL.md
+  - ~/.claude/skills/CORE/Contacts.md
+  - ~/.claude/skills/CORE/CoreStack.md
+  - ~/.claude/.env
+  - ~/.claude/settings.json
+
+Next steps:
+
+  1. Re-install any packs that have been updated (check changelog)
+  2. Restart Claude Code to activate changes
+
+Your existing hooks, history, and customizations have been preserved.
+`);
+    } else {
+      console.log(`
 Your Kai system is configured:
 
   📁 Installation: ~/.claude
@@ -530,6 +735,7 @@ Files created:
   - ~/.claude/skills/CORE/Contacts.md
   - ~/.claude/skills/CORE/CoreStack.md
   - ~/.claude/.env
+  - ~/.claude/settings.json (env vars for Claude Code)
 
 Next steps:
 
@@ -543,6 +749,7 @@ Next steps:
 
 Your backup is at ~/.claude-BACKUP if you need to restore.
 `);
+    }
 
   } catch (error) {
     console.error("\n❌ Installation failed:", error);
